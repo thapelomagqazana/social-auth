@@ -1,0 +1,46 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://www.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.example</groupId>
+        <artifactId>social-website-backend</artifactId>
+        <version>1.0-SNAPSHOT</version> <!-- Add this -->
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>application</artifactId>
+
+    <dependencies>
+        <!-- API Module -->
+        <dependency>
+            <groupId>com.example</groupId>
+            <artifactId>api</artifactId>
+        </dependency>
+
+        <!-- Service Module -->
+        <dependency>
+            <groupId>com.example</groupId>
+            <artifactId>service</artifactId>
+        </dependency>
+
+        <!-- Security Module -->
+        <dependency>
+            <groupId>com.example</groupId>
+            <artifactId>security</artifactId>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>3.4.2</version>
+                <configuration>
+                    <mainClass>com.example.application.SocialWebsiteApplication</mainClass>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
