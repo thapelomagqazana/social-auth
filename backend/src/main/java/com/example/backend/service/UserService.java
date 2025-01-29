@@ -33,6 +33,8 @@ public class UserService {
             throw new IllegalArgumentException("Email is already in use.");
         }
 
+        user.setUsername(user.getUsername().toLowerCase().trim());
+        user.setEmail(user.getEmail().toLowerCase().trim());
         user.setPassword(passwordEncoder.encode(user.getPassword())); // Encrypt the password
         user.getRoles().add("USER"); // Assign default role
         return userRepository.save(user); // Save the user in the database

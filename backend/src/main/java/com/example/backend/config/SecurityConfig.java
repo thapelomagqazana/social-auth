@@ -1,11 +1,18 @@
 package com.example.backend.config;
 
+import com.example.backend.security.JwtAuthFilter;
+import com.example.backend.security.UserDetailsServiceImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 /**
  * Configuration class for Spring Security.
@@ -13,41 +20,41 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 public class SecurityConfig {
 
-    /**
-     * Configure a BCryptPasswordEncoder bean for encrypting passwords.
-     * 
-     * @return a BCryptPasswordEncoder instance
-     */
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    /**
-     * Configure the SecurityFilterChain bean for HTTP security.
-     *
-     * @param http the HttpSecurity object
-     * @return the SecurityFilterChain instance
-     * @throws Exception if configuration fails
-     */
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf().disable() // Disable CSRF for testing purposes
-            .authorizeHttpRequests()
-            .requestMatchers("/api/auth/**").permitAll() // Allow unauthenticated access to auth endpoints
-            .anyRequest().authenticated();
+    @Primary
+    public UserDetailsService userDetailsService(UserDetailsServiceImpl userDetailsServiceImpl) {
+        return userDetailsServiceImpl;
+    }
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthFilter jwtAuthFilter) throws Exception {
+        http.csrf(csrf -> csrf.disable()) // Disable CSRF for API authentication
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
+                .requestMatchers("/api/auth/logout").authenticated() // Require authentication for logout
+                .anyRequest().authenticated()
+            )
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class) // ✅ Add JWT filter before authentication
+            .sessionManagement(session -> session.sessionCreationPolicy(org.springframework.security.config.http.SessionCreationPolicy.STATELESS));
+
         return http.build();
     }
 
-    /**
-     * Configure the authentication manager.
-     * 
-     * @param http the HttpSecurity object
-     * @return the AuthenticationManager instance
-     * @throws Exception if configuration fails
-     */
     @Bean
-    public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
-        return http.getSharedObject(AuthenticationManager.class);
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
+    }
+
+    @Bean
+    public DaoAuthenticationProvider authenticationProvider(UserDetailsService userDetailsService, BCryptPasswordEncoder passwordEncoder) {
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+        authProvider.setUserDetailsService(userDetailsService);
+        authProvider.setPasswordEncoder(passwordEncoder);
+        return authProvider;
     }
 }

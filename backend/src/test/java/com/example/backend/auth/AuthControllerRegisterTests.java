@@ -1,8 +1,11 @@
-package com.example.backend;
+package com.example.backend.auth;
 
 import com.example.backend.model.User;
+import com.example.backend.repository.UserRepository;
 import com.example.backend.security.JwtUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +23,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
-class AuthControllerTests {
+class AuthControllerRegisterTests {
 
     @Autowired
     private MockMvc mockMvc;
@@ -31,6 +34,16 @@ class AuthControllerTests {
     @MockBean
     private JwtUtils jwtUtils;
 
+    @Autowired
+    private UserRepository userRepository;
+
+    @BeforeEach
+    void setUp() {
+        // Clear the database before each test
+        userRepository.deleteAll();
+    }
+
+
     @Test
     @DisplayName("TC_POS_001: Register a new user successfully")
     void testRegisterNewUserSuccessfully() throws Exception {
@@ -40,7 +53,7 @@ class AuthControllerTests {
         user.setPassword("Password@123");
 
         // Mock JWTUtils behavior (if applicable)
-        when(jwtUtils.generateToken(user.getUsername())).thenReturn("mockToken");
+        when(jwtUtils.generateToken(user.getUsername(), 86400000)).thenReturn("mockToken");
 
         mockMvc.perform(post("/api/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -104,7 +117,7 @@ class AuthControllerTests {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(payload))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string("Username is required."));
+                .andExpect(jsonPath("$.errors.username").value("Username is required."));
     }
 
     @Test
@@ -116,7 +129,7 @@ class AuthControllerTests {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(payload))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string("Email is required."));
+                .andExpect(jsonPath("$.errors.email").value("Email is required."));
     }
 
     @Test
@@ -128,12 +141,19 @@ class AuthControllerTests {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(payload))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string("Password is required."));
+                .andExpect(jsonPath("$.errors.password").value("Password is required."));
     }
 
     @Test
     @DisplayName("TC_NEG_004: Duplicate username")
     void testDuplicateUsername() throws Exception {
+        User user = new User();
+        user.setUsername("newuser");
+        user.setEmail("newemail1@example.com");
+        user.setPassword("Password@123");
+        user.getRoles().add("USER");
+        userRepository.save(user);
+
         String payload = "{\"username\": \"newuser\", \"email\": \"newemail@example.com\", \"password\": \"Password@123\"}";
 
         mockMvc.perform(post("/api/auth/register")
@@ -146,7 +166,14 @@ class AuthControllerTests {
     @Test
     @DisplayName("TC_NEG_005: Duplicate email")
     void testDuplicateEmail() throws Exception {
-        String payload = "{\"username\": \"newuser1\", \"email\": \"newuser@example.com\", \"password\": \"Password@123\"}";
+        User user = new User();
+        user.setUsername("newuser");
+        user.setEmail("newemail@example.com");
+        user.setPassword("Password@123");
+        user.getRoles().add("USER");
+        userRepository.save(user);
+
+        String payload = "{\"username\": \"newuser1\", \"email\": \"newemail@example.com\", \"password\": \"Password@123\"}";
 
         mockMvc.perform(post("/api/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -164,7 +191,7 @@ class AuthControllerTests {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(payload))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string("Password must be at least 8 characters long."));
+                .andExpect(jsonPath("$.errors.password").value("Password must be at least 8 characters long."));
     }
 
     @Test
@@ -176,7 +203,7 @@ class AuthControllerTests {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(payload))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string("Invalid email format."));
+                .andExpect(jsonPath("$.errors.email").value("Invalid email format."));
     }
 
     @Test
@@ -188,7 +215,7 @@ class AuthControllerTests {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(payload))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string("Username must be between 3 and 20 characters."));
+                .andExpect(jsonPath("$.errors.username").value("Username must be between 3 and 20 characters."));
     }
 
     // Edge and Corner Cases
@@ -213,4 +240,6 @@ class AuthControllerTests {
                 .content(payload))
                 .andExpect(status().isBadRequest());
     }
+
+    
 }

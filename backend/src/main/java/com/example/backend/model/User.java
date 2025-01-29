@@ -37,4 +37,15 @@ public class User {
     @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
     @Column(name = "role")
     private Set<String> roles = new HashSet<>(); // Roles assigned to the user (e.g., USER, ADMIN)
+
+    @Column(nullable = false)
+    private boolean enabled = true; // Default to true
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
 }

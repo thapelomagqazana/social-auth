@@ -1,78 +1,81 @@
 package com.example.backend.security;
 
-import io.jsonwebtoken.*;
-import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import javax.crypto.SecretKey;
 import java.util.Date;
 
 /**
- * Utility class for generating and validating JSON Web Tokens (JWT).
+ * Utility class for JWT operations.
  */
 @Component
 public class JwtUtils {
 
-    private final SecretKey key; // Secret key for signing and verifying the JWT
+    @Value("${jwt.secret}")
+    private String secret;
 
     @Value("${jwt.expiration}")
-    private long expiration; // JWT expiration time in milliseconds
+    private long expirationMs;
 
-    /**
-     * Constructor to initialize the signing key from the provided secret.
-     *
-     * @param secret the secret key in base64 format
-     */
-    public JwtUtils(@Value("${jwt.secret}") String secret) {
-        this.key = Keys.hmacShaKeyFor(secret.getBytes());
+    private final JwtBlacklistService jwtBlacklistService;
+
+    public JwtUtils(JwtBlacklistService jwtBlacklistService) {
+        this.jwtBlacklistService = jwtBlacklistService;
     }
 
     /**
-     * Generate a JWT token for the given username.
-     *
-     * @param username the username to include in the token
-     * @return the generated JWT token
+     * Generates a JWT token for a given username.
      */
-    public String generateToken(String username) {
+    public String generateToken(String username, long expirationMillis) {
+        Date expirationDate = new Date(System.currentTimeMillis() + expirationMillis);
+    
         return Jwts.builder()
                 .setSubject(username)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + expiration))
-                .signWith(key, SignatureAlgorithm.HS512)
+                .setExpiration(expirationDate)
+                .signWith(SignatureAlgorithm.HS256, secret)
                 .compact();
     }
+    
+    
 
     /**
-     * Extract the username from a given JWT token.
-     *
-     * @param token the JWT token
-     * @return the username contained in the token
+     * Validates a JWT token.
      */
-    public String getUsernameFromToken(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(key)
-                .build()
-                .parseClaimsJws(token)
-                .getBody()
-                .getSubject();
+    public boolean validateToken(String token) {
+        if (jwtBlacklistService.isTokenBlacklisted(token)) {
+            return false;
+        }
+
+        try {
+            Jwts.parser().setSigningKey(secret).parseClaimsJws(token);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     /**
-     * Validate the provided JWT token.
-     *
-     * @param token the JWT token
-     * @return true if the token is valid, false otherwise
+     * Extracts the username from a token.
      */
-    public boolean validateToken(String token) {
-        try {
-            Jwts.parserBuilder()
-                .setSigningKey(key)
-                .build()
-                .parseClaimsJws(token);
-            return true;
-        } catch (JwtException | IllegalArgumentException e) {
-            return false; // Invalid token
-        }
+    public String extractUsername(String token) {
+        return parseClaims(token).getSubject();
+    }
+
+    /**
+     * Extracts the expiration time from a token.
+     */
+    public Date extractExpiration(String token) {
+        return parseClaims(token).getExpiration();
+    }
+
+    /**
+     * Parses claims from a token.
+     */
+    private Claims parseClaims(String token) {
+        return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody();
     }
 }
