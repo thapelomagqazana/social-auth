@@ -53,6 +53,8 @@ public class AuthControllerLogoutTests {
     private String refreshToken;
     private String secondDeviceToken;
 
+    private final String ROLE = "ROLE_USER";
+
     @BeforeEach
     void setUp() {
         // Clear token blacklist before each test
@@ -63,9 +65,9 @@ public class AuthControllerLogoutTests {
         Mockito.when(userDetailsService.loadUserByUsername("validuser")).thenReturn(mockUser);
 
         // Generate fresh JWT tokens for the test user
-        validToken = jwtUtils.generateToken("validuser", 86400000);
-        refreshToken = jwtUtils.generateToken("validuser", 86400000);
-        secondDeviceToken = jwtUtils.generateToken("validuser", 86400000);
+        validToken = jwtUtils.generateToken("validuser", 86400000, ROLE);
+        refreshToken = jwtUtils.generateToken("validuser", 86400000, ROLE);
+        secondDeviceToken = jwtUtils.generateToken("validuser", 86400000, ROLE);
     }
 
     @AfterEach
@@ -94,8 +96,8 @@ public class AuthControllerLogoutTests {
      */
     @Test
     void testLogoutMultipleTimes() throws Exception {
-        String firstDeviceToken = jwtUtils.generateToken("validuser", 86400000);
-        String secondDeviceToken = jwtUtils.generateToken("validuser", 86400000);
+        String firstDeviceToken = jwtUtils.generateToken("validuser", 86400000, ROLE);
+        String secondDeviceToken = jwtUtils.generateToken("validuser", 86400000, ROLE);
         // First logout attempt should succeed
         mockMvc.perform(post("/api/auth/logout")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + firstDeviceToken)
@@ -177,7 +179,7 @@ public class AuthControllerLogoutTests {
     @Test
     void testExpiredToken() throws Exception {
         // Generate an expired token by setting expiration time to past
-        String expiredToken = jwtUtils.generateToken("validuser", -3600000); // 1 hour ago
+        String expiredToken = jwtUtils.generateToken("validuser", -3600000, ROLE); // 1 hour ago
 
         mockMvc.perform(post("/api/auth/logout")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + expiredToken)
@@ -191,7 +193,7 @@ public class AuthControllerLogoutTests {
      */
     @Test
     void testLogoutAfterPasswordReset() throws Exception {
-        String oldToken = jwtUtils.generateToken("validuser", 86400000);
+        String oldToken = jwtUtils.generateToken("validuser", 86400000, ROLE);
 
         // Simulate password reset that invalidates old tokens
         jwtBlacklistService.blacklistToken(oldToken, 86400000);

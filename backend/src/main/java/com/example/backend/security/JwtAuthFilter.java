@@ -7,13 +7,20 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+
 import java.io.IOException;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * JWT Authentication Filter for processing token-based authentication.
@@ -43,49 +50,62 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             chain.doFilter(request, response);
             return;
         }
-
+    
         String token = extractToken(request);
-
+    
         if (token == null || token.isEmpty()) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");
             response.getWriter().write("{\"message\": \"Token is missing.\"}");
             return;
         }
-
+    
         if (!jwtUtils.validateToken(token)) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");
             response.getWriter().write("{\"message\": \"Invalid token.\"}");
             return;
         }
-
+    
         if (jwtBlacklistService.isTokenBlacklisted(token)) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");
             response.getWriter().write("{\"message\": \"Token is already revoked.\"}");
             return;
         }
-
+    
         String username = jwtUtils.extractUsername(token);
         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+    
+        // Use jwtUtils.getSecret() instead of accessing 'secret' directly
+        Claims claims = Jwts.parser()
+                .setSigningKey(jwtUtils.getSecret())  // ✅ Retrieve secret from JwtUtils
+                .parseClaimsJws(token)
+                .getBody();
+    
+        List<String> roles = claims.get("authorities", List.class);  // Read role from JWT
+    
         if (userDetails == null) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");
             response.getWriter().write("{\"message\": \"User no longer exists.\"}");
             return;
         }
-
-        if (SecurityContextHolder.getContext().getAuthentication() == null) {
-            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                    userDetails, null, userDetails.getAuthorities());
-            authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
-            SecurityContextHolder.getContext().setAuthentication(authToken);
-        }
-
+    
+        // Convert roles to Spring Security authorities
+        List<SimpleGrantedAuthority> authorities = roles.stream()
+                .map(SimpleGrantedAuthority::new)
+                .collect(Collectors.toList());
+    
+        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                userDetails, null, authorities);
+        authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+    
+        SecurityContextHolder.getContext().setAuthentication(authToken);
+    
         chain.doFilter(request, response);
     }
+    
 
     private String extractToken(HttpServletRequest request) {
         String authHeader = request.getHeader("Authorization");

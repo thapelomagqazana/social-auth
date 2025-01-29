@@ -37,6 +37,8 @@ class AuthControllerRegisterTests {
     @Autowired
     private UserRepository userRepository;
 
+    private final String ROLE = "ROLE_USER";
+
     @BeforeEach
     void setUp() {
         // Clear the database before each test
@@ -53,7 +55,7 @@ class AuthControllerRegisterTests {
         user.setPassword("Password@123");
 
         // Mock JWTUtils behavior (if applicable)
-        when(jwtUtils.generateToken(user.getUsername(), 86400000)).thenReturn("mockToken");
+        when(jwtUtils.generateToken(user.getUsername(), 86400000, ROLE)).thenReturn("mockToken");
 
         mockMvc.perform(post("/api/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)

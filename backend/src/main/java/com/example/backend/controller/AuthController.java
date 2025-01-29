@@ -89,7 +89,10 @@ public class AuthController {
 
             // Validate password
             if (passwordEncoder.matches(password, user.getPassword())) {
-                String token = jwtUtils.generateToken(username, 86400000);
+                // Get the first role safely (or default to "ROLE_USER")
+                String role = user.getRoles().isEmpty() ? "ROLE_USER" : user.getRoles().iterator().next();
+                
+                String token = jwtUtils.generateToken(username, 86400000, role);
                 return ResponseEntity.ok(Map.of("token", "Bearer " + token));
             } else {
                 return ResponseEntity.status(401).body(Map.of(MESSAGE, INVALID_CREDENTIALS));

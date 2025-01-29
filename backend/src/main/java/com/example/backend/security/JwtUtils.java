@@ -7,6 +7,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Utility class for JWT operations.
@@ -22,6 +25,8 @@ public class JwtUtils {
 
     private final JwtBlacklistService jwtBlacklistService;
 
+    private final Set<String> revokedTokens = new HashSet<>(); // Store revoked tokens
+
     public JwtUtils(JwtBlacklistService jwtBlacklistService) {
         this.jwtBlacklistService = jwtBlacklistService;
     }
@@ -29,16 +34,18 @@ public class JwtUtils {
     /**
      * Generates a JWT token for a given username.
      */
-    public String generateToken(String username, long expirationMillis) {
+    public String generateToken(String username, long expirationMillis, String role) {
         Date expirationDate = new Date(System.currentTimeMillis() + expirationMillis);
     
         return Jwts.builder()
                 .setSubject(username)
+                .claim("authorities", List.of(role))  // ✅ Store role under "authorities" claim
                 .setIssuedAt(new Date())
                 .setExpiration(expirationDate)
                 .signWith(SignatureAlgorithm.HS256, secret)
                 .compact();
     }
+    
     
     
 
@@ -49,6 +56,10 @@ public class JwtUtils {
         if (jwtBlacklistService.isTokenBlacklisted(token)) {
             return false;
         }
+
+        // if (isTokenRevoked(token)) {
+        //     return false;
+        // }
 
         try {
             Jwts.parser().setSigningKey(secret).parseClaimsJws(token);
@@ -77,5 +88,24 @@ public class JwtUtils {
      */
     private Claims parseClaims(String token) {
         return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody();
+    }
+
+    public String getSecret() {
+        return secret;
+    }
+
+    
+    /**
+     * Revokes a token by adding it to the revoked list.
+     */
+    public void revokeToken(String token) {
+        revokedTokens.add(token);
+    }
+
+    /**
+     * Checks if a token is revoked.
+     */
+    public boolean isTokenRevoked(String token) {
+        return revokedTokens.contains(token);
     }
 }

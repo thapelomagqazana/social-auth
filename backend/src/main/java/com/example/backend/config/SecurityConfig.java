@@ -36,14 +36,16 @@ public class SecurityConfig {
         http.csrf(csrf -> csrf.disable()) // Disable CSRF for API authentication
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
-                .requestMatchers("/api/auth/logout").authenticated() // Require authentication for logout
+                .requestMatchers("/api/users").hasAuthority("ROLE_ADMIN") // ✅ Fix role check
+                .requestMatchers("/api/auth/logout").authenticated()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class) // ✅ Add JWT filter before authentication
             .sessionManagement(session -> session.sessionCreationPolicy(org.springframework.security.config.http.SessionCreationPolicy.STATELESS));
-
+    
         return http.build();
     }
+    
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {

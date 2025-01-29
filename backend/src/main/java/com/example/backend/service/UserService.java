@@ -2,9 +2,14 @@ package com.example.backend.service;
 
 import com.example.backend.model.User;
 import com.example.backend.repository.UserRepository;
+
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 /**
  * Service class for managing user-related operations.
@@ -36,7 +41,7 @@ public class UserService {
         user.setUsername(user.getUsername().toLowerCase().trim());
         user.setEmail(user.getEmail().toLowerCase().trim());
         user.setPassword(passwordEncoder.encode(user.getPassword())); // Encrypt the password
-        user.getRoles().add("USER"); // Assign default role
+        user.getRoles().add("ROLE_USER"); // Assign default role
         return userRepository.save(user); // Save the user in the database
     }
 
@@ -50,5 +55,23 @@ public class UserService {
     public User findByUsername(String username) {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found: " + username));
+    }
+
+    /**
+     * Retrieves all users from the database (for non-paginated requests).
+     * @return a list of all registered users.
+     */
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
+    }
+
+    /**
+     * Retrieves all users from the database with pagination and sorting.
+     *
+     * @param pageable Pageable object containing pagination and sorting information.
+     * @return a paginated list of users.
+     */
+    public Page<User> getAllUsers(Pageable pageable) {
+        return userRepository.findAll(pageable);
     }
 }
