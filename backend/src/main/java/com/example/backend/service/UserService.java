@@ -74,4 +74,24 @@ public class UserService {
     public Page<User> getAllUsers(Pageable pageable) {
         return userRepository.findAll(pageable);
     }
+
+    /**
+     * Retrieve a user by their ID.
+     * @param id The ID of the user.
+     * @return The user entity if found.
+     * @throws RuntimeException If the user is not found.
+     */
+    public User findById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found with ID: " + id));
+    }
+
+    public String encodePassword(String rawPassword) {
+        return passwordEncoder.encode(rawPassword);
+    }
+    
+    public User saveUser(User user) {
+        return userRepository.save(user);
+    }
+    
 }

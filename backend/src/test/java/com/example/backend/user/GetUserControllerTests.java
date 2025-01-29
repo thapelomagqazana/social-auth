@@ -28,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-public class UserControllerTests {
+public class GetUserControllerTests {
 
     @Autowired
     private MockMvc mockMvc;
@@ -49,8 +49,8 @@ public class UserControllerTests {
 
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-    private final String ADMIN_ROLE = "ROLE_ADMIN";
-    private final String USER_ROLE = "ROLE_USER";
+    private final String ADMIN_ROLE = "ADMIN";
+    private final String USER_ROLE = "USER";
 
     @BeforeEach
     void setUp() {
@@ -104,8 +104,8 @@ public class UserControllerTests {
     void testFetchAllUsersAsAdmin() throws Exception {
         // Mock repository returning a list of users
         List<User> users = Arrays.asList(
-                new User("adminUser", "admin@example.com", "password123@!", ADMIN_ROLE),
-                new User("normalUser", "user@example.com", "password123@!", USER_ROLE)
+                new User("adminUser", "admin@example.com", "password123@!", Set.of(ADMIN_ROLE)),
+                new User("normalUser", "user@example.com", "password123@!", Set.of(USER_ROLE))
         );
 
         Mockito.when(userRepository.findAll()).thenReturn(users);
@@ -124,9 +124,9 @@ public class UserControllerTests {
     @Test
     void testFetchAllUsersMultipleUsers() throws Exception {
         List<User> users = Arrays.asList(
-                new User("user1", "user1@example.com", "password123@!", USER_ROLE),
-                new User("user2", "user2@example.com", "password123@!", USER_ROLE),
-                new User("user3", "user3@example.com", "password123@!", USER_ROLE)
+                new User("user1", "user1@example.com", "password123@!", Set.of(USER_ROLE)),
+                new User("user2", "user2@example.com", "password123@!", Set.of(USER_ROLE)),
+                new User("user3", "user3@example.com", "password123@!", Set.of(USER_ROLE))
         );
 
         Mockito.when(userRepository.findAll()).thenReturn(users);
@@ -158,8 +158,8 @@ public class UserControllerTests {
     @Test
     void testFetchUsersWithSpecialCharacters() throws Exception {
         List<User> users = Arrays.asList(
-                new User("john-doe", "john@example.com", "password123@!", USER_ROLE),
-                new User("mary_ann", "mary@example.com", "password123@!", USER_ROLE)
+                new User("john-doe", "john@example.com", "password123@!", Set.of(USER_ROLE)),
+                new User("mary_ann", "mary@example.com", "password123@!", Set.of(USER_ROLE))
         );
 
         Mockito.when(userRepository.findAll()).thenReturn(users);
@@ -178,8 +178,8 @@ public class UserControllerTests {
     @Test
     void testFetchUsersWithLongUsernames() throws Exception {
         List<User> users = Arrays.asList(
-                new User("thisisaverylongusernamefortestingpurposes", "longuser@example.com", "password123@!", USER_ROLE),
-                new User("anotherlongusernametotestlimits", "longtest@example.com", "password123@!", USER_ROLE)
+                new User("thisisaverylongusernamefortestingpurposes", "longuser@example.com", "password123@!", Set.of(USER_ROLE)),
+                new User("anotherlongusernametotestlimits", "longtest@example.com", "password123@!", Set.of(USER_ROLE))
         );
 
         Mockito.when(userRepository.findAll()).thenReturn(users);
@@ -357,8 +357,8 @@ public class UserControllerTests {
     @Test
     void testRequestDuringHighTraffic() throws Exception {
         List<User> users = Arrays.asList(
-                new User("adminUser", "admin@example.com", "password123@!", ADMIN_ROLE),
-                new User("normalUser", "user@example.com", "password123@!", "ROLE_USER")
+                new User("adminUser", "admin@example.com", "password123@!", Set.of(ADMIN_ROLE)),
+                new User("normalUser", "user@example.com", "password123@!", Set.of(USER_ROLE))
         );
 
         Mockito.when(userRepository.findAll()).thenReturn(users);

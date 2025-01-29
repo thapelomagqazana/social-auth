@@ -49,11 +49,20 @@ public class User {
         this.enabled = enabled;
     }
 
-    public User(String username, String email, String password, String role) {
+    public User(String username, String email, String password, Set<String> roles) {
         this.username = username;
         this.email = email;
         this.password = password;
-        this.roles.add(role);
+        this.roles = roles;
+        this.enabled = true;
+    }
+
+    public User(Long id, String username, String email, String password, Set<String> roles) {
+        this.username = username;
+        this.id = id;
+        this.email = email;
+        this.password = password;
+        this.roles = roles;
         this.enabled = true;
     }
 
