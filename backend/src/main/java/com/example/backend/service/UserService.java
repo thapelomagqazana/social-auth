@@ -3,7 +3,11 @@ package com.example.backend.service;
 import com.example.backend.model.User;
 import com.example.backend.repository.UserRepository;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -90,8 +94,96 @@ public class UserService {
         return passwordEncoder.encode(rawPassword);
     }
     
-    public User saveUser(User user) {
-        return userRepository.save(user);
+    /**
+     * Updates the user's profile dynamically based on the given fields.
+     *
+     * @param id      The ID of the user to update.
+     * @param updates A map of fields to update.
+     * @return The updated user.
+     */
+    public User updateUser(Long id, Map<String, Object> updates, boolean isAdmin) {
+        return userRepository.findById(id)
+            .map(user -> applyUpdates(user, updates, isAdmin))
+            .map(userRepository::save)
+            .orElse(null);
+    }
+    
+    /**
+     * Applies updates to the user dynamically.
+     */
+    private User applyUpdates(User user, Map<String, Object> updates, boolean isAdmin) {
+        updates.forEach((key, value) -> {
+            switch (key) {
+                case "username":
+                    user.setUsername(validateUsername(value.toString(), user.getUsername()));
+                    break;
+                case "email":
+                    user.setEmail(validateEmail(value.toString(), user.getEmail()));
+                    break;
+                case "password":
+                    user.setPassword(validatePassword(value.toString()));
+                    break;
+                case "roles":
+                    if (isAdmin) {
+                        user.setRoles(convertRoles(value));
+                    }
+                    break;
+            }
+        });
+        return user;
+    }
+    
+    /**
+     * Validates the new username.
+     */
+    private String validateUsername(String newUsername, String currentUsername) {
+        if (newUsername.trim().isEmpty()) {
+            throw new IllegalArgumentException("Username cannot be empty");
+        }
+        if (newUsername.length() > 255) {
+            throw new IllegalArgumentException("Field length exceeds the limit");
+        }
+        if (userRepository.findByUsername(newUsername).isPresent() && !currentUsername.equals(newUsername)) {
+            throw new IllegalArgumentException("Username is already taken");
+        }
+        return newUsername;
+    }
+    
+    /**
+     * Validates the new email.
+     */
+    private String validateEmail(String newEmail, String currentEmail) {
+        if (!newEmail.matches("^[\\w.-]+@[\\w.-]+\\.[a-zA-Z]{2,}$")) {
+            throw new IllegalArgumentException("Invalid email format");
+        }
+        if (newEmail.length() > 255) {
+            throw new IllegalArgumentException("Field length exceeds the limit");
+        }
+        if (userRepository.findByEmail(newEmail).isPresent() && !currentEmail.equals(newEmail)) {
+            throw new IllegalArgumentException("Email is already in use");
+        }
+        return newEmail;
+    }
+    
+    /**
+     * Validates and hashes the new password.
+     */
+    private String validatePassword(String newPassword) {
+        if (newPassword.length() < 8 || !newPassword.matches(".*[A-Za-z].*") || !newPassword.matches(".*\\d.*")) {
+            throw new IllegalArgumentException("Password is too weak");
+        }
+        return encodePassword(newPassword);
+    }
+    
+    /**
+     * Converts roles from a List to a Set safely.
+     */
+    @SuppressWarnings("unchecked")
+    private Set<String> convertRoles(Object roles) {
+        if (roles instanceof List) {
+            return new HashSet<>((List<String>) roles);
+        }
+        throw new IllegalArgumentException("Invalid roles format");
     }
     
 }

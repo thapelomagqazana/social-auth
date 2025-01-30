@@ -23,8 +23,8 @@ public class BackendApplication {
         System.setProperty("JWT_SECRET_KEY", dotenv.get("JWT_SECRET_KEY"));
         System.setProperty("JWT_EXPIRATION", dotenv.get("JWT_EXPIRATION"));
 
-        System.out.println("DB_URL from dotenv: " + dotenv.get("DB_URL"));
-        System.out.println("DB_URL from System properties: " + System.getProperty("DB_URL"));
+        // System.out.println("DB_URL from dotenv: " + dotenv.get("DB_URL"));
+        // System.out.println("DB_URL from System properties: " + System.getProperty("DB_URL"));
 
 
         SpringApplication.run(BackendApplication.class, args);

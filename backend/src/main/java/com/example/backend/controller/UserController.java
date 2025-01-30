@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -111,14 +112,12 @@ public class UserController {
     /**
      * PUT /api/users/{id} - Update a specific user's profile.
      * 
-     * Only allow:
-     * - The logged-in user to update their own profile
-     * - Admins to update any user profile
-     *
-     * @param id The ID of the user to update.
-     * @param updates A map containing the fields to be updated.
-     * @param authentication The authentication object representing the logged-in user.
-     * @return A ResponseEntity indicating success or failure.
+     * Only the user themselves or an admin can update the profile.
+     * 
+     * @param id The user ID.
+     * @param updates A map containing fields to be updated.
+     * @param authentication The currently authenticated user.
+     * @return ResponseEntity with updated user details.
      */
     @PutMapping("/{id}")
     public ResponseEntity<?> updateUserProfile(
@@ -126,44 +125,27 @@ public class UserController {
             @RequestBody Map<String, Object> updates,
             Authentication authentication) {
         
-        String loggedInUsername = authentication.getName(); // Get currently logged-in user
-        boolean isAdmin = authentication.getAuthorities().stream()
-                .anyMatch(auth -> auth.getAuthority().equals("ADMIN"));
+        try {
+            String loggedInUsername = authentication.getName(); // Get currently logged-in user
+            boolean isAdmin = authentication.getAuthorities().stream()
+                    .anyMatch(auth -> auth.getAuthority().equals("ADMIN"));
 
-        // Fetch the user to update
-        User existingUser = userService.findById(id);
-        if (existingUser == null) {
-            return ResponseEntity.status(404).body(Map.of("message", "User not found"));
-        }
-
-        // Allow only the logged-in user OR an admin to update
-        if (!loggedInUsername.equals(existingUser.getUsername()) && !isAdmin) {
-            return ResponseEntity.status(403).body(Map.of("message", "Access denied"));
-        }
-
-        // Update allowed fields dynamically
-        updates.forEach((key, value) -> {
-            switch (key) {
-                case "username":
-                    existingUser.setUsername(value.toString().trim());
-                    break;
-                case "email":
-                    existingUser.setEmail(value.toString().trim().toLowerCase());
-                    break;
-                case "password":
-                    existingUser.setPassword(userService.encodePassword(value.toString())); // Encrypt password
-                    break;
-                case "roles":
-                    if (isAdmin) { // Only admins can update roles
-                        existingUser.setRoles((Set<String>)value);
-                    }
-                    break;
+            User user = userService.findById(id);
+            if (user == null) {
+                return ResponseEntity.status(404).body(Map.of("message", "User not found"));
             }
-        });
 
-        // Save updated user
-        User updatedUser = userService.saveUser(existingUser);
-        return ResponseEntity.ok(Map.of("message", "User updated successfully", "user", updatedUser));
+            // Only allow the user themselves OR an admin to update the profile
+            if (!loggedInUsername.equals(user.getUsername()) && !isAdmin) {
+                return ResponseEntity.status(403).body(Map.of("message", "Access denied."));
+            }
+
+            // Update user fields dynamically
+            userService.updateUser(id, updates, isAdmin);
+            return ResponseEntity.ok(Map.of("message", "User profile updated successfully", "user", user));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(400).body(Map.of("message", e.getMessage())); // Return 400 for duplicate email/username
+        }
+        
     }
-
 }
