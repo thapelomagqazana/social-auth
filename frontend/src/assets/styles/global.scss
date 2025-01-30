@@ -1,4 +1,4 @@
-@import './variables';
+@import './_variables.scss';
 
 // Global Resets
 * {
@@ -142,39 +142,6 @@ input, textarea {
   }
 }
 
-// Navbar
-.navbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 15px 20px;
-  background: var(--background);
-  box-shadow: $box-shadow;
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-
-  .logo {
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: var(--text);
-  }
-
-  .nav-links {
-    display: flex;
-    gap: 15px;
-
-    a {
-      text-decoration: none;
-      color: var(--text);
-      transition: color 0.2s;
-
-      &:hover {
-        color: $primary-color;
-      }
-    }
-  }
-}
 
 // Notifications
 .notifications {

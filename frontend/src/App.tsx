@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Navbar from './components/UI/Navbar';
 import LandingPage from './pages/LandingPage';
 import SignUpPage from './pages/SignUpPage';
 import "./assets/styles/global.scss"; // Global styles
@@ -9,7 +10,7 @@ function App() {
     <>
       <Router>
         {/* <ThemeToggle /> */}
-        {/* <Navbar /> */}
+        <Navbar />
         <Routes>
           <Route path="/" element={<LandingPage />} />
           {/* <Route path="/login" element={<LoginPage />} /> */}

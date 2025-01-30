@@ -1,0 +1,33 @@
+@media screen and (max-width: map-get($breakpoints, "tablet")) { // Tablet View
+    .signup-page {
+      padding: 50px 15px;
+    }
+  
+    h1 {
+      font-size: 2rem;
+    }
+  
+    .signup-form {
+      width: 90%;
+    }
+}
+
+@media screen and (max-width: map-get($breakpoints, "smartphone")) { // Smartphone View
+    .signup-page {
+        padding: 40px 10px;
+    }
+
+    h1 {
+        font-size: 1.8rem;
+    }
+
+    .signup-form {
+        width: 100%;
+        padding: 20px;
+    }
+
+    .google-btn {
+        font-size: 0.9rem;
+    }
+}
+  

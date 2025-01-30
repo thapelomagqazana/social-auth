@@ -5,14 +5,15 @@
  */
 
 import React from "react";
-// import SignUpForm from "../components/Auth/SignUpForm";
+import SignUpForm from "../components/Auth/SignUpForm";
+import "../assets/styles/auth/_signup.scss";
 // import "../styles/auth/_signup.scss";
 
 const SignUpPage = () => {
   return (
     <section className="signup-page">
       <h1>🚀 Join the Community</h1>
-      {/* <SignUpForm /> */}
+      <SignUpForm />
     </section>
   );
 };

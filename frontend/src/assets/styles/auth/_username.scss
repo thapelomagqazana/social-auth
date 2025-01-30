@@ -1,0 +1,26 @@
+// Username Input
+.input-group {
+    position: relative;
+  
+    .suggestions {
+      background: white;
+      border-radius: 8px;
+      padding: 5px;
+      position: absolute;
+      width: 100%;
+      top: 100%;
+      left: 0;
+      box-shadow: $box-shadow;
+  
+      span {
+        display: block;
+        padding: 5px;
+        cursor: pointer;
+        &:hover {
+          background: $primary-color;
+          color: white;
+        }
+      }
+    }
+}
+  

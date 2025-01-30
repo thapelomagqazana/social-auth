@@ -1,0 +1,36 @@
+// Sign-Up Button
+.btn {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    text-align: center;
+    font-size: 1rem;
+    font-weight: bold;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.2s ease-in-out;
+  
+    &:hover {
+      transform: scale(1.05);
+    }
+  }
+  
+  .btn-primary {
+    background: $btn-primary;
+    color: white;
+  
+    &:hover {
+      background: darken($btn-primary, 10%);
+    }
+  }
+  
+  .btn-secondary {
+    background: $btn-secondary;
+    color: white;
+  
+    &:hover {
+      background: darken($btn-secondary, 10%);
+    }
+}
+  

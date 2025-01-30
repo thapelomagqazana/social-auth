@@ -1,0 +1,142 @@
+@import "../_variables.scss";
+
+// 📌 Navbar Container
+.navbar {
+  background: var(--background);
+  padding: 12px 20px;
+  box-shadow: $box-shadow;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  transition: all 0.3s ease-in-out;
+
+  .nav-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .logo {
+    font-size: 1.6rem;
+    font-weight: bold;
+    color: var(--text);
+    text-decoration: none;
+
+    .logo-highlight {
+      color: $primary-color;
+    }
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 25px;
+
+    li {
+      list-style: none;
+
+      a {
+        text-decoration: none;
+        color: var(--text);
+        transition: color 0.3s ease;
+
+        &:hover {
+          color: $primary-color;
+        }
+      }
+    }
+  }
+
+  // Authentication & User Menu
+  .auth-controls {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+
+    .auth-buttons {
+      display: flex;
+      gap: 10px;
+    }
+
+    @media screen and (max-width: map-get($breakpoints, "tablet")) {
+      .auth-buttons {
+        display: none; // ✅ Hide Sign Up & Login for tablet and smartphone
+      }
+    }
+  }
+}
+
+// 📌 Mobile Menu Styles
+.menu-toggle {
+  display: none;
+  font-size: 2rem;
+  cursor: pointer;
+}
+
+.mobile-menu {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 60%;
+  height: 100vh;
+  background: var(--background);
+  box-shadow: $box-shadow;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  list-style: none;
+  z-index: 1001;
+  transition: transform 0.3s ease-in-out;
+
+  li {
+    padding: 15px;
+    font-size: 1.2rem;
+    cursor: pointer;
+
+    a {
+      text-decoration: none;
+      color: var(--text);
+    }
+
+    &:hover {
+      background: $accent-light;
+    }
+  }
+}
+
+// 📱 Responsive Design Adjustments
+
+// 📌 Hide nav-links & buttons for Tablet & Mobile (≤1024px)
+@media screen and (max-width: map-get($breakpoints, "tablet")) {
+  .nav-links {
+    display: none !important; // ✅ Hides desktop nav-links
+  }
+
+  .menu-toggle {
+    display: block !important; // ✅ Shows menu toggle button
+  }
+}
+
+// 📌 Adjustments for Smartphone (≤600px)
+@media screen and (max-width: map-get($breakpoints, "smartphone")) {
+  .navbar {
+    padding: 10px 15px;
+  }
+
+  .logo {
+    font-size: 1.3rem;
+  }
+
+  .auth-controls {
+    gap: 8px;
+  }
+
+  .menu-toggle {
+    font-size: 1.8rem;
+  }
+
+  .mobile-menu {
+    width: 75%; // Takes more space on mobile
+  }
+}

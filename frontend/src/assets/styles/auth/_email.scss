@@ -1,0 +1,16 @@
+// Email Input
+.input-group {
+    input[type="email"] {
+      border: 1px solid var(--accent);
+      padding: 10px;
+      width: 100%;
+      border-radius: 8px;
+    }
+  
+    .error-text {
+      color: red;
+      font-size: 0.9rem;
+      margin-top: 5px;
+    }
+}
+  

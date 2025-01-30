@@ -1,26 +1,44 @@
 /**
- * Navbar.tsx
- * 
- * Responsive navigation bar with authentication states and animations.
+ * Responsive navigation bar with animations and authentication states.
  */
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../../hooks/useAuth";
-import "../../styles/layout/_navbar.scss";
+import Button from "../UI/Button";
+import "../../assets/styles/layout/_navbar.scss";
 
 const Navbar = () => {
   const { user, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const menuRef = useRef<HTMLUListElement>(null);
+  const dropdownRef = useRef<HTMLUListElement>(null);
 
-  const toggleMenu = () => setMenuOpen(!menuOpen);
+  // ✅ Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setMenuOpen(false);
+      }
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   return (
     <nav className="navbar">
       <div className="nav-container">
+        {/* Logo */}
         <Link to="/" className="logo">
-          PULSE 🌟
+          PULSE<span className="logo-highlight">🌟</span>
         </Link>
 
         {/* Desktop Navigation Links */}
@@ -30,16 +48,16 @@ const Navbar = () => {
           <li><Link to="/about">About</Link></li>
         </ul>
 
-        {/* User Authentication Controls */}
+        {/* Authentication & User Menu */}
         <div className="auth-controls">
           {user ? (
-            <div className="user-menu">
-              <button className="user-avatar" onClick={toggleMenu}>
+            <div className="user-menu" ref={dropdownRef}>
+              <button className="user-avatar" onClick={() => setDropdownOpen(!dropdownOpen)}>
                 {user.username[0].toUpperCase()}
               </button>
 
               <AnimatePresence>
-                {menuOpen && (
+                {dropdownOpen && (
                   <motion.ul 
                     className="dropdown-menu"
                     initial={{ opacity: 0, y: -10 }}
@@ -53,39 +71,42 @@ const Navbar = () => {
               </AnimatePresence>
             </div>
           ) : (
-            <>
-              <Link to="/login" className="btn-secondary">Login</Link>
-              <Link to="/signup" className="btn-primary">Sign Up</Link>
-            </>
+            <div className="auth-buttons">
+              <Button to="/signup">Sign Up</Button>
+              <Button to="/login" secondary>
+                Login
+              </Button>
+            </div>
           )}
         </div>
 
         {/* Mobile Menu Toggle */}
-        <div className="menu-toggle" onClick={toggleMenu}>
+        <button className="menu-toggle" onClick={() => setMenuOpen(!menuOpen)}>
           ☰
-        </div>
+        </button>
 
         {/* Mobile Navigation Menu */}
         <AnimatePresence>
           {menuOpen && (
             <motion.ul 
               className="mobile-menu"
+              ref={menuRef}
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
             >
-              <li><Link to="/explore" onClick={toggleMenu}>Explore</Link></li>
-              <li><Link to="/features" onClick={toggleMenu}>Features</Link></li>
-              <li><Link to="/about" onClick={toggleMenu}>About</Link></li>
+              <li><Link to="/explore" onClick={() => setMenuOpen(false)}>Explore</Link></li>
+              <li><Link to="/features" onClick={() => setMenuOpen(false)}>Features</Link></li>
+              <li><Link to="/about" onClick={() => setMenuOpen(false)}>About</Link></li>
               {!user ? (
                 <>
-                  <li><Link to="/login" onClick={toggleMenu}>Login</Link></li>
-                  <li><Link to="/signup" onClick={toggleMenu}>Sign Up</Link></li>
+                  <li><Link to="/login" onClick={() => setMenuOpen(false)}>Login</Link></li>
+                  <li><Link to="/signup" onClick={() => setMenuOpen(false)}>Sign Up</Link></li>
                 </>
               ) : (
                 <>
-                  <li><Link to="/profile" onClick={toggleMenu}>Profile</Link></li>
-                  <li onClick={() => { logout(); toggleMenu(); }}>Logout</li>
+                  <li><Link to="/profile" onClick={() => setMenuOpen(false)}>Profile</Link></li>
+                  <li onClick={() => { logout(); setMenuOpen(false); }}>Logout</li>
                 </>
               )}
             </motion.ul>

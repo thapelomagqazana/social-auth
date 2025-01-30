@@ -1,0 +1,21 @@
+// Form Structure
+.signup-form {
+    max-width: 400px;
+    margin: 0 auto;
+    background: var(--accent);
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: $box-shadow;
+  
+    .input-group {
+      margin-bottom: 20px;
+    }
+  
+    .or-divider {
+      margin: 20px 0;
+      text-align: center;
+      font-weight: bold;
+      color: #888;
+    }
+}
+  
