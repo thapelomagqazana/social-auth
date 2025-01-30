@@ -185,5 +185,33 @@ public class UserService {
         }
         throw new IllegalArgumentException("Invalid roles format");
     }
+
+    /**
+     * Deletes a user by ID (Admin only).
+     *
+     * @param id The ID of the user to delete.
+     * @param loggedInUsername The username of the admin making the request.
+     * @return true if deletion was successful, false otherwise.
+     */
+    public boolean deleteUser(Long id, String loggedInUsername) {
+        Optional<User> optionalUser = userRepository.findById(id);
     
+        if (optionalUser.isEmpty()) {
+            return false;
+        }
+    
+        User userToDelete = optionalUser.get();
+    
+        // Prevent admins from deleting themselves
+        if (userToDelete.getUsername().equals(loggedInUsername)) {
+            throw new IllegalArgumentException("Admin cannot delete themselves.");
+        }
+    
+        try {
+            userRepository.deleteById(id);
+            return true;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to delete user due to an internal error.");
+        }
+    }
 }

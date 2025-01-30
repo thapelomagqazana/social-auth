@@ -8,6 +8,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.Authentication;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -92,21 +93,26 @@ public class UserController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<?> getUserById(@PathVariable Long id, Authentication authentication) {
-        String loggedInUsername = authentication.getName(); // Get currently logged-in user
-        boolean isAdmin = authentication.getAuthorities().stream()
-                .anyMatch(auth -> auth.getAuthority().equals("ADMIN"));
+        try {
+            String loggedInUsername = authentication.getName(); // Get currently logged-in user
+            boolean isAdmin = authentication.getAuthorities().stream()
+                    .anyMatch(auth -> auth.getAuthority().equals("ADMIN"));
 
-        User user = userService.findById(id);
-        if (user == null) {
-            return ResponseEntity.status(404).body("{\"message\": \"User not found\"}");
+            User user = userService.findById(id);
+            if (user == null) {
+                return ResponseEntity.status(404).body("{\"message\": \"User not found\"}");
+            }
+
+            // Allow only the logged-in user OR an admin to access
+            if (!loggedInUsername.equals(user.getUsername()) && !isAdmin) {
+                return ResponseEntity.status(403).body("{\"message\": \"Access denied.\"}");
+            }
+
+            return ResponseEntity.ok(user);
         }
-
-        // Allow only the logged-in user OR an admin to access
-        if (!loggedInUsername.equals(user.getUsername()) && !isAdmin) {
-            return ResponseEntity.status(403).body("{\"message\": \"Access denied.\"}");
+        catch (RuntimeException e) {
+            return ResponseEntity.status(404).body(Map.of("message", e.getMessage()));
         }
-
-        return ResponseEntity.ok(user);
     }
 
     /**
@@ -145,6 +151,68 @@ public class UserController {
             return ResponseEntity.ok(Map.of("message", "User profile updated successfully", "user", user));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(400).body(Map.of("message", e.getMessage())); // Return 400 for duplicate email/username
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(404).body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    /**
+     * DELETE /api/users/{id} - Delete a user (Admin only).
+     *
+     * @param id The ID of the user to delete.
+     * @param authentication The authenticated user making the request.
+     * @return ResponseEntity with a success or error message.
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteUser(@PathVariable Long id, Authentication authentication) {
+        try {
+            boolean isAdmin = authentication.getAuthorities().stream()
+                            .anyMatch(auth -> auth.getAuthority().equals("ADMIN"));
+            
+            // Prevent standard users from deleting accounts
+            if (!isAdmin) {
+                return ResponseEntity.status(403).body("{\"message\": \"Access denied.\"}");
+            }
+
+            String loggedInUsername = authentication.getName(); // Get the current admin user
+
+            boolean isDeleted = userService.deleteUser(id, loggedInUsername);
+            
+            if (!isDeleted) {
+                return ResponseEntity.status(400).body("{\"message\": \"Failed to delete user.\"}");
+            }
+    
+            return ResponseEntity.ok("{\"message\": \"User deleted successfully.\"}");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(400).body(Map.of("message", e.getMessage())); // Return 400 for duplicate email/username
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(404).body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    /**
+     * GET /api/users/me - Fetch the currently logged-in user's profile.
+     *
+     * This endpoint allows any authenticated user to retrieve their own profile information.
+     *
+     * @param authentication The authenticated user from the security context.
+     * @return The user profile data in JSON format.
+     */
+    @GetMapping("/me")
+    public ResponseEntity<?> getCurrentUserProfile(Authentication authentication) {
+        try {
+            // Get the username from the authenticated user
+            String loggedInUsername = authentication.getName();
+
+            // Fetch user details from the database
+            User user = userService.findByUsername(loggedInUsername);
+            if (user == null) {
+                return ResponseEntity.status(404).body("{\"message\": \"User not found\"}");
+            }
+
+            return ResponseEntity.ok(user);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(404).body(Map.of("message", e.getMessage()));
         }
         
     }
