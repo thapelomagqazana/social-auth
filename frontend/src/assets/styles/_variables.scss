@@ -1,0 +1,63 @@
+// Global Breakpoints for Responsive Design
+$breakpoints: (
+  "smartphone": 600px,
+  "tablet": 1024px,
+  "desktop": 1025px
+);
+
+// Color Variables
+$primary-color: #1da1f2;  // Vibrant blue
+$secondary-color: #ffb400; // Bright yellow
+$background-light: #ffffff;
+$background-dark: #121212;
+$text-light: #1e1e1e;
+$text-dark: #f1f1f1;
+$accent-light: #e5e5e5;
+$accent-dark: #2e2e2e;
+
+// Theme Colors
+$light-theme: (
+  background: $background-light,
+  text: $text-light,
+  accent: $accent-light,
+);
+
+$dark-theme: (
+  background: $background-dark,
+  text: $text-dark,
+  accent: $accent-dark,
+);
+
+// Typography
+$font-family: 'Inter', sans-serif;
+$font-size-base: 16px;
+$heading-font: 'Poppins', sans-serif;
+
+// UI Components
+$border-radius: 12px;
+$box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.1);
+$transition-speed: 0.3s;
+
+// Animations
+$hover-scale: scale(1.02);
+$hover-transition: transform 0.2s ease-in-out;
+
+// Buttons
+$btn-primary: $primary-color;
+$btn-primary-hover: darken($primary-color, 10%);
+$btn-secondary: $secondary-color;
+$btn-secondary-hover: darken($secondary-color, 10%);
+$btn-disabled: #b0b0b0;
+
+// Dark Mode Toggle
+:root {
+  --background: #{map-get($light-theme, background)};
+  --text: #{map-get($light-theme, text)};
+  --accent: #{map-get($light-theme, accent)};
+}
+
+[data-theme="dark"] {
+  --background: #{map-get($dark-theme, background)};
+  --text: #{map-get($dark-theme, text)};
+  --accent: #{map-get($dark-theme, accent)};
+}

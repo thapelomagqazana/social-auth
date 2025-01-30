@@ -1,0 +1,107 @@
+@import "../variables";
+
+// 🎯 Features Section Styling
+.features {
+  padding: 80px 20px;
+  background: var(--accent);
+  text-align: center;
+
+  h2 {
+    font-size: 2.5rem;
+    margin-bottom: 30px;
+    font-weight: bold;
+  }
+
+  // 📌 Scrollable Wrapper for Mobile
+  .features-scroll-wrapper {
+    overflow-x: auto;
+    display: flex;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 10px;
+  }
+
+  // 🎭 Features Grid
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); // Default: 3 columns (desktop)
+    gap: 30px;
+    justify-content: center;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .feature-card {
+    padding: 20px;
+    border-radius: 12px;
+    background: white;
+    box-shadow: $box-shadow;
+    width: 100%;
+    min-height: 180px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s ease-in-out;
+    scroll-snap-align: center;
+
+    &:hover {
+      transform: scale(1.05);
+    }
+
+    h3 {
+      font-size: 1.3rem;
+      margin-bottom: 10px;
+    }
+
+    p {
+      font-size: 1rem;
+      color: #555;
+    }
+  }
+}
+
+// 📱 Responsive Design Using Breakpoints
+@media screen and (max-width: map-get($breakpoints, "tablet")) { // Tablet View (≤1024px)
+  .features {
+    padding: 60px 20px;
+  }
+
+  .features-grid {
+    grid-template-columns: repeat(2, 1fr); // 2 columns for tablets
+    gap: 25px;
+  }
+
+  h2 {
+    font-size: 2rem;
+  }
+}
+
+@media screen and (max-width: map-get($breakpoints, "smartphone")) { // Smartphone View (≤600px)
+  .features {
+    padding: 50px 15px;
+  }
+
+  .features-scroll-wrapper {
+    display: flex;
+    overflow-x: auto;
+    gap: 15px;
+    padding-bottom: 10px;
+  }
+
+  .features-grid {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 15px;
+  }
+
+  .feature-card {
+    flex: 0 0 80%;
+    min-width: 250px;
+    text-align: center;
+  }
+
+  h2 {
+    font-size: 1.8rem;
+  }
+}

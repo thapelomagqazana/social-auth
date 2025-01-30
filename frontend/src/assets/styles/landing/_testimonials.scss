@@ -1,0 +1,112 @@
+@import "../variables";
+
+// 🎤 Testimonials Section
+.testimonials {
+  padding: 80px 20px;
+  background: var(--background);
+  text-align: center;
+
+  .testimonials-title {
+    font-size: 2.5rem;
+    margin-bottom: 30px;
+    font-weight: bold;
+    color: var(--text);
+  }
+
+  // 📌 Scrollable Wrapper for Mobile
+  .testimonials-scroll-wrapper {
+    overflow-x: auto;
+    display: flex;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 10px;
+  }
+
+  // 📢 Testimonials Grid Layout
+  .testimonial-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); // Default: 3 columns (desktop)
+    gap: 30px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .testimonial-card {
+    padding: 20px;
+    border-radius: 12px;
+    background: var(--accent);
+    box-shadow: $box-shadow;
+    text-align: center;
+    transition: transform 0.3s ease-in-out;
+    scroll-snap-align: center;
+
+    &:hover {
+      transform: scale(1.05);
+    }
+
+    .user-image {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-bottom: 15px;
+      border: 3px solid $primary-color;
+    }
+
+    .testimonial-text {
+      font-size: 1rem;
+      color: var(--text);
+      margin-bottom: 10px;
+    }
+
+    .testimonial-user {
+      font-weight: bold;
+      color: $primary-color;
+    }
+  }
+}
+
+// 📱 Responsive Design Using Breakpoints
+@media screen and (max-width: map-get($breakpoints, "tablet")) { // Tablet View (≤1024px)
+  .testimonials {
+    padding: 60px 20px;
+  }
+
+  .testimonial-grid {
+    grid-template-columns: repeat(2, 1fr); // 2 columns for tablets
+    gap: 25px;
+  }
+
+  .testimonials-title {
+    font-size: 2rem;
+  }
+}
+
+@media screen and (max-width: map-get($breakpoints, "smartphone")) { // Smartphone View (≤600px)
+  .testimonials {
+    padding: 50px 15px;
+  }
+
+  .testimonials-scroll-wrapper {
+    display: flex;
+    overflow-x: auto;
+    gap: 15px;
+    padding-bottom: 10px;
+  }
+
+  .testimonial-grid {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 15px;
+  }
+
+  .testimonial-card {
+    flex: 0 0 80%;
+    min-width: 250px;
+    text-align: center;
+  }
+
+  .testimonials-title {
+    font-size: 1.8rem;
+  }
+}

@@ -1,0 +1,75 @@
+@import "../variables";
+
+// 📢 Call-To-Action Section
+.cta {
+  background: linear-gradient(135deg, $primary-color, $btn-secondary);
+  color: white;
+  padding: 80px 20px;
+  text-align: center;
+  border-radius: 12px;
+  margin: 40px auto;
+  max-width: 1200px;
+
+  .cta-content {
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  h2 {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    font-weight: bold;
+  }
+
+  p {
+    font-size: 1.2rem;
+    margin-bottom: 30px;
+    opacity: 0.9;
+  }
+
+  .cta-buttons {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+  }
+}
+
+// 📱 Responsive Design
+@media screen and (max-width: map-get($breakpoints, "tablet")) { // Tablet View (≤1024px)
+  .cta {
+    padding: 60px 20px;
+  }
+
+  h2 {
+    font-size: 2rem;
+  }
+
+  p {
+    font-size: 1rem;
+  }
+
+  .cta-buttons {
+    flex-direction: column; // Stack buttons for tablets
+    gap: 15px;
+  }
+}
+
+@media screen and (max-width: map-get($breakpoints, "smartphone")) { // Smartphone View (≤600px)
+  .cta {
+    padding: 50px 15px;
+    border-radius: 8px;
+  }
+
+  h2 {
+    font-size: 1.8rem;
+  }
+
+  p {
+    font-size: 1rem;
+  }
+
+  .cta-buttons {
+    flex-direction: column; // Stack buttons for mobile
+    gap: 10px;
+  }
+}

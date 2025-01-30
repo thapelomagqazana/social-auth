@@ -1,10 +1,23 @@
 import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import LandingPage from './pages/LandingPage';
+import SignUpPage from './pages/SignUpPage';
+import "./assets/styles/global.scss"; // Global styles
 
 function App() {
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-      <h1 className="text-4xl font-bold text-blue-600">Welcome to TailwindCSS with Vite!</h1>
-    </div>
+    <>
+      <Router>
+        {/* <ThemeToggle /> */}
+        {/* <Navbar /> */}
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          {/* <Route path="/login" element={<LoginPage />} /> */}
+          <Route path="/signup" element={<SignUpPage />} />
+          {/* <Route path="/reset-password" element={<ForgotPasswordPage />} /> */}
+        </Routes>
+      </Router>
+    </>
   );
 }
 
