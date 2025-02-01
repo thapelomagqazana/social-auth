@@ -14,6 +14,7 @@ public class BackendApplication {
                               .load();
 
         // Set environment variables for the application
+        System.setProperty("BASE_URL", dotenv.get("BASE_URL"));
         System.setProperty("DB_URL", dotenv.get("DB_URL"));
         System.setProperty("DB_USERNAME", dotenv.get("DB_USERNAME"));
         System.setProperty("DB_PASSWORD", dotenv.get("DB_PASSWORD"));

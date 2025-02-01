@@ -5,9 +5,8 @@
  */
 
 import React from "react";
-import SignUpForm from "../components/Auth/SignUpForm";
-import "../assets/styles/auth/_signup.scss";
-// import "../styles/auth/_signup.scss";
+import SignUpForm from "../components/Auth/Register/SignUpForm";
+import "../assets/styles/auth/register/_signup.scss";
 
 const SignUpPage = () => {
   return (

@@ -14,16 +14,16 @@
     &:hover {
       transform: scale(1.05);
     }
-  }
+}
   
-  .btn-primary {
+.btn-primary {
     background: $btn-primary;
     color: white;
   
     &:hover {
       background: darken($btn-primary, 10%);
     }
-  }
+}
   
   .btn-secondary {
     background: $btn-secondary;

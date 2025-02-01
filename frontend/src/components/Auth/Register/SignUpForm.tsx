@@ -4,11 +4,11 @@
  */
 
 import React, { useState } from "react";
-import UsernameInput from "./UsernameInput";
+import UsernameInput from "../../UI/UsernameInput";
 import EmailInput from "./EmailInput";
 import PasswordInput from "./PasswordInput";
-import GoogleOAuth from "./GoogleOAuth";
-import Button from "../UI/Button";
+import GoogleOAuth from "../../UI/GoogleOAuth";
+import Button from "../../UI/Button";
 // import "../../styles/auth/_signup.scss";
 
 const SignUpForm = () => {

@@ -1,6 +1,7 @@
 package com.example.backend.controller;
 
 import com.example.backend.dto.LoginRequest;
+import com.example.backend.model.PasswordResetToken;
 import com.example.backend.model.User;
 import com.example.backend.security.JwtBlacklistService;
 import com.example.backend.security.JwtUtils;
@@ -30,6 +31,8 @@ public class AuthController {
     private static final String MESSAGE = "message";
     private static final String INVALID_CREDENTIALS = "Invalid username or password.";
     private static final String ACCOUNT_DISABLED = "Account is disabled.";
+
+    private final String BASE_URL = System.getProperty("BASE_URL");
 
     @Autowired
     private UserService userService;
@@ -143,5 +146,53 @@ public class AuthController {
         }
 
         return null;
+    }
+
+
+    /**
+     * Generates a password reset link and sends it via email.
+     */
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> requestPasswordReset(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+
+        try {
+            if (email == null || email.trim().isEmpty()) {
+                return ResponseEntity.status(400).body(Map.of(MESSAGE, "Email is required."));
+            }
+        
+            // Check for spam (last request time)
+            // if (userService.isSpamRequest(email)) {
+            //     return ResponseEntity.status(429).body(Map.of(MESSAGE, "Too many requests. Try again later."));
+            // }
+
+            String token = userService.generatePasswordResetToken(email);
+            String resetLink = BASE_URL + "/api/auth/reset-password?token=" + token;
+
+            // Simulate email sending (Replace this with real email service)
+            System.out.println("Password Reset Link: " + resetLink);
+
+            return ResponseEntity.ok(Map.of(MESSAGE, "Password reset link sent to email."));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(400).body(Map.of(MESSAGE, e.getMessage()));
+        }
+    }
+
+    /**
+     * Resets the user's password using a valid token.
+     */
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody Map<String, String> request) {
+        String token = request.get("token");
+        String newPassword = request.get("newPassword");
+
+        
+        try {
+            String email = userService.validatePasswordResetToken(token);
+            userService.updatePassword(email, newPassword);
+            return ResponseEntity.ok(Map.of(MESSAGE, "Password has been reset successfully."));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(400).body(Map.of(MESSAGE, e.getMessage()));
+        }
     }
 }

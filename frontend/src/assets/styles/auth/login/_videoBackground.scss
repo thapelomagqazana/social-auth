@@ -1,0 +1,19 @@
+@import "../../variables";
+
+// Video Background Styling
+.video-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  z-index: -2; // Ensures it's behind all content
+
+  video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; // Ensures full screen coverage
+    filter: brightness(70%); // Slight dimming for readability
+  }
+}

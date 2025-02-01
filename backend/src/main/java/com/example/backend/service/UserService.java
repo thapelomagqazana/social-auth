@@ -1,17 +1,24 @@
 package com.example.backend.service;
 
+import com.example.backend.model.PasswordResetToken;
 import com.example.backend.model.User;
+import com.example.backend.repository.PasswordResetTokenRepository;
 import com.example.backend.repository.UserRepository;
 
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -25,7 +32,16 @@ public class UserService {
     private UserRepository userRepository;
 
     @Autowired
+    private PasswordResetTokenRepository tokenRepository;
+
+    @Autowired
     private BCryptPasswordEncoder passwordEncoder;
+
+    @Autowired
+    private PasswordResetTokenRepository passwordResetTokenRepository;
+
+    private final Map<String, LocalDateTime> resetRequestTracker = new HashMap<>();
+
 
     /**
      * Register a new user with encrypted password and default role.
@@ -214,4 +230,100 @@ public class UserService {
             throw new RuntimeException("Failed to delete user due to an internal error.");
         }
     }
+
+    /**
+     * Generates a password reset token for the user.
+     */
+    public String generatePasswordResetToken(String email) {
+        Optional<User> userOptional = userRepository.findByEmail(email);
+        if (userOptional.isEmpty()) {
+            throw new IllegalArgumentException("No user found with this email.");
+        }
+
+        User user = userOptional.get();
+        String token = UUID.randomUUID().toString();
+        PasswordResetToken resetToken = new PasswordResetToken(token, user, LocalDateTime.now().plusMinutes(30));
+
+        tokenRepository.save(resetToken);
+        return token;
+    }
+
+    /**
+     * Updates the password of the user identified by email.
+     *
+     * @param email       The email of the user whose password needs to be updated.
+     * @param newPassword The new password to be set.
+     */
+    @Transactional
+    public void updatePassword(String email, String newPassword) {
+        Optional<User> optionalUser = userRepository.findByEmail(email);
+
+        if (optionalUser.isEmpty()) {
+            throw new IllegalArgumentException("User with the provided email does not exist.");
+        }
+
+        String encodedPassword = validatePassword(newPassword);
+
+        User user = optionalUser.get();
+
+        user.setPassword(encodedPassword);
+        userRepository.save(user);
+    }
+
+    /**
+     * Validates the password reset token and deletes it after successful verification.
+     * 
+     * @param token The password reset token.
+     * @return The email associated with the token if valid.
+     * @throws IllegalArgumentException if the token is invalid or expired.
+     */
+    public String validatePasswordResetToken(String token) {
+        Optional<PasswordResetToken> resetTokenOpt = passwordResetTokenRepository.findByToken(token);
+        
+        if (resetTokenOpt.isEmpty()) {
+            throw new IllegalArgumentException("Invalid or expired token.");
+        }
+
+        PasswordResetToken resetToken = resetTokenOpt.get();
+
+        // Check if the token is expired
+        if (resetToken.getExpiryDate().isBefore(LocalDateTime.now())) {
+            passwordResetTokenRepository.delete(resetToken); // Delete expired token
+            throw new IllegalArgumentException("Token has expired.");
+        }
+
+        String email = resetToken.getUser().getEmail();
+
+        // Delete the token immediately after validation
+        passwordResetTokenRepository.delete(resetToken);
+
+        return email;
+    }
+
+    public boolean isSpamRequest(String email) {
+        LocalDateTime now = LocalDateTime.now();
+
+        if (resetRequestTracker.containsKey(email)) {
+            LocalDateTime lastRequestTime = resetRequestTracker.get(email);
+            if (ChronoUnit.MINUTES.between(lastRequestTime, now) < 1) {
+                return true; // Spam detected (multiple requests within 1 min)
+            }
+        }
+
+        resetRequestTracker.put(email, now);
+        return false;
+    }
+
+    // private void validatePassword(String newPassword) {
+    //     if (newPassword.length() < 8) {
+    //         throw new IllegalArgumentException("Password is too weak. It must be at least 8 characters.");
+    //     }
+    //     if (!newPassword.matches(".*[A-Za-z].*") || !newPassword.matches(".*\\d.*")) {
+    //         throw new IllegalArgumentException("Password must contain at least one letter and one number.");
+    //     }
+    //     if (!newPassword.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?].*")) {
+    //         throw new IllegalArgumentException("Password must contain at least one special character.");
+    //     }
+    // }
+    
 }

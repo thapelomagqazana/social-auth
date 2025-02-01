@@ -35,7 +35,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthFilter jwtAuthFilter) throws Exception {
         http.csrf(csrf -> csrf.disable()) // Disable CSRF for API authentication
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
+                .requestMatchers("/api/auth/register", "/api/auth/login", "/api/auth/reset-password", "/api/auth/forgot-password").permitAll()
                 .requestMatchers("/api/users").hasAuthority("ADMIN") // Admins can access all users
                 .requestMatchers("/api/users/{id}").authenticated() // Authenticated users can access their own profile
                 .requestMatchers("/api/auth/logout").authenticated()
