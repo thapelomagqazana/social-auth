@@ -14,6 +14,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * REST API Controller for managing user bookmarks.
@@ -47,15 +48,15 @@ public class BookmarkController {
         String trimmedUrl = bookmarkRequest.getUrl().trim();
         bookmarkRequest.setUrl(trimmedUrl);
 
+        if (user == null) {
+            return ResponseEntity.status(401).body(Map.of(MESSAGE, "User not authenticated"));
+        }
+    
+        if (!user.isEnabled()) {
+            return ResponseEntity.status(403).body(Map.of(MESSAGE, "User account is disabled"));
+        }
+
         try {
-            if (user == null) {
-                return ResponseEntity.status(401).body(Map.of(MESSAGE, "User not authenticated"));
-            }
-        
-            if (!user.isEnabled()) {
-                return ResponseEntity.status(403).body(Map.of(MESSAGE, "User account is disabled"));
-            }
-        
             Bookmark bookmark = bookmarkService.saveBookmark(user, bookmarkRequest.getTitle(), trimmedUrl);
         
             return ResponseEntity.ok(Map.of("bookmark", bookmark));
@@ -69,12 +70,21 @@ public class BookmarkController {
 
     /**
      * Fetch all bookmarks for the authenticated user.
+     * GET /api/bookmarks
      */
     @GetMapping
     public ResponseEntity<?> getUserBookmarks(@AuthenticationPrincipal UserDetails userDetails) {
         User user = userService.findByUsername(userDetails.getUsername());
-        List<Bookmark> bookmarks = bookmarkService.getUserBookmarks(user);
-        return ResponseEntity.ok(bookmarks);
+
+        if (!user.isEnabled()) {
+            return ResponseEntity.status(403).body(Map.of(MESSAGE, "User account is disabled"));
+        }
+        try {
+            List<Bookmark> bookmarks = bookmarkService.getUserBookmarks(user);
+            return ResponseEntity.ok(bookmarks);
+        } catch (RuntimeException ex) {
+            return ResponseEntity.status(404).body(Map.of(MESSAGE, ex.getMessage()));
+        }
     }
 
     /**
@@ -92,5 +102,40 @@ public class BookmarkController {
         } else {
             return ResponseEntity.status(403).body(Map.of("message", "Bookmark not found or unauthorized."));
         }
+    }
+
+    /**
+     * Fetch a specific bookmark by ID.
+     */
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getBookmarkById(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable Long id) {
+        
+        if (id < 1) {
+            return ResponseEntity.status(400).body(Map.of(MESSAGE, "Invalid bookmark ID"));
+        }
+
+        User user = userService.findByUsername(userDetails.getUsername());
+        if (user == null) {
+            return ResponseEntity.status(404).body(Map.of(MESSAGE, "User not found"));
+        }
+    
+        if (!user.isEnabled()) {
+            return ResponseEntity.status(403).body(Map.of(MESSAGE, "User account is disabled"));
+        }
+
+        try {
+            Optional<Bookmark> bookmarkOpt = bookmarkService.getBookmarkByIdAndUser(id, user);
+            if (bookmarkOpt.isEmpty()) {
+                return ResponseEntity.status(404).body(Map.of(MESSAGE, "Bookmark not found"));
+            }
+    
+            return ResponseEntity.ok(bookmarkOpt.get());
+        } catch (RuntimeException ex) {
+            return ResponseEntity.status(404).body(Map.of(MESSAGE, ex.getMessage()));
+        }
+
+
     }
 }

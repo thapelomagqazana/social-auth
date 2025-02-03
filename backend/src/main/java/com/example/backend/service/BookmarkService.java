@@ -45,6 +45,9 @@ public class BookmarkService {
      * @return List of bookmarks.
      */
     public List<Bookmark> getUserBookmarks(User user) {
+        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
+            throw new RuntimeException("User not found");
+        }
         return bookmarkRepository.findByUser(user);
     }
 
@@ -62,5 +65,22 @@ public class BookmarkService {
             return true;
         }
         return false;
+    }
+
+    /**
+     * Fetch a bookmark by ID for a specific user.
+     * @param id The ID of the bookmark.
+     * @param user The authenticated user.
+     * @return Optional containing the bookmark if found.
+     */
+    public Optional<Bookmark> getBookmarkByIdAndUser(Long id, User user) {
+        if (bookmarkRepository.findById(id).isPresent()){
+            throw new RuntimeException("Bookmark not found");
+        }
+
+        if (userRepository.findByEmail(user.getEmail()).isPresent()){
+            throw new RuntimeException("User not found");
+        }
+        return bookmarkRepository.findByIdAndUser(id, user);
     }
 }
